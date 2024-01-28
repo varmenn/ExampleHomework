@@ -7,6 +7,8 @@ using ExampleAPI.Repositories.Abstracts;
 using ExampleAPI.Repositories.Concretes;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using TCKimlikNoVerification;
+using static TCKimlikNoVerification.KPSPublicSoapClient;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -65,9 +67,15 @@ public class UsersController : Controller
     }
 
     [HttpPost("Add")]
-    public IActionResult Add([FromBody] User user)
+    public async Task<IActionResult> Add([FromBody] User user)
     {
+        KPSPublicSoapClient client = new(EndpointConfiguration.KPSPublicSoap12);
+        var result = await client.TCKimlikNoDogrulaAsync(long.Parse(user.IdentificationNumber), user.FirstName, user.LastName, user.BirthYear);
+        if (result.Body.TCKimlikNoDogrulaResult == false)
+            return BadRequest("User Information is wrong. Please check information!");
+            
         return Ok(_userRepository.Add(user));
+
     }
     [HttpPost("AddBalance")]
     public IActionResult Add([FromBody] AccountTransaction accountTransaction)
